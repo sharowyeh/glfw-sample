@@ -1,5 +1,9 @@
 #include <stdio.h>
 
+//#include "Window.hpp"
+#include "MatWidget.h"
+#include "Camera.h"
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -24,41 +28,45 @@
 #include <mutex>
 #include <condition_variable>
 
-cv::VideoCapture cap;
-cv::Mat raw;
-
-static bool frame_loop = true;
-static bool frame_ready = false;
-cv::Mat frame;
-std::thread frame_thread;
-std::mutex mtx;
-
 void errorCallback(int code, const char* msg) {
 	printf("error:%d msg:%s\n", code, msg);
 }
 
-void retrieveFrameRun() {
-	if (!cap.open(0))
-		return;
+GLUI::MatWidget *cap_widget;
 
-	while (frame_loop) {
-		if (cap.grab() && cap.retrieve(raw)) {
-			mtx.lock();
-			//raw.copyTo(frame);
-			cv::cvtColor(raw, frame, cv::COLOR_BGR2RGBA);
-			mtx.unlock();
-			frame_ready = true;
+/* cap ctrl UI properties */
+bool is_cap_opened = false;
+const char* cap_open_text = "Open";
+const char* cap_show_text = "Hide";
+const char* cap_draw_text = "Undraw";
+/* cap ctrl draw */
+void cap_ctrl_widget_Render() {
+	ImGui::Begin("Camera Control", NULL, ImGuiWindowFlags_NoCollapse);
+
+	if (ImGui::Button(cap_open_text)) {
+		if (is_cap_opened) {
+			Camera::CloseCapture();
+			is_cap_opened = false;
+			cap_open_text = "Open";
 		}
+		else {
+			is_cap_opened = Camera::OpenCapture(0);
+			cap_open_text = is_cap_opened ? "Close Camera" : "Failed";
+		}
+	}
 
-		auto key = cv::waitKey(1);
-		if (key == 'c')
-			break;
+	if (ImGui::Button(cap_show_text)) {
+		cap_widget->IsShow = !cap_widget->IsShow;
+		cap_show_text = cap_widget->IsShow ? "Hide" : "Show";
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(cap_draw_text)) {
+		cap_widget->IsDraw = !cap_widget->IsDraw;
+		cap_draw_text = cap_widget->IsDraw ? "Undraw" : "Draw";
 	}
 }
 
 int main() {
-	frame_thread = std::thread(retrieveFrameRun);
-
 	GLFWwindow* window;
 	
 	glfwSetErrorCallback(errorCallback);
@@ -67,7 +75,7 @@ int main() {
 	if (!glfwInit())
 		return -1;
 
-	window = glfwCreateWindow(640, 480, "GLFW", NULL, NULL);
+	window = glfwCreateWindow(1280, 720, "GLFW", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
@@ -75,20 +83,19 @@ int main() {
 
 	/* make context current */
 	glfwMakeContextCurrent(window);
+	/* for vsync */
+	glfwSwapInterval(1);
 	
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-	bool is_show = true;
+
+	cap_widget = new GLUI::MatWidget("Capture", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
+	Camera::SetRawWidget(cap_widget);
 
 	/* loop until user close window */
 	while (glfwWindowShouldClose(window) == 0) {
@@ -96,37 +103,39 @@ int main() {
 		/* poll for and process event */
 		glfwPollEvents();
 		/* render after clear */
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		if (frame_ready) {
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
-			ImGui::Begin("imgui image", &is_show);
-			mtx.lock();
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, frame.cols, frame.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame.data);
-			ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texture)), ImVec2(frame.cols, frame.rows));
-			mtx.unlock();
-			ImGui::End();
-			//TODO: black screen
-			ImGui::Render();
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		if (cap_widget->IsShow) {
+			cap_widget->Render();
 		}
+
+		ImGui::SetNextWindowPos(ImVec2(670, 0));
+		cap_ctrl_widget_Render();
+		
+		ImGui::Text("average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		/* swap buffer */
 		glfwSwapBuffers(window);
 	}
+
+	Camera::CloseCapture();
 
 	ImGui_ImplGlfw_Shutdown();
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui::DestroyContext();
 
 	glfwTerminate();
-
-	frame_loop = false;
-	if (frame_thread.joinable())
-		frame_thread.join();
 
 	return 0;
 }
