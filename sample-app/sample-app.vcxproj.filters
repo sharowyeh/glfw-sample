@@ -48,6 +48,12 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HandleWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MatWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.hpp">
@@ -84,6 +90,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HandleWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
