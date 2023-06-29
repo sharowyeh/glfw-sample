@@ -29,23 +29,23 @@ GLUI::MatWidget::MatWidget(const char* name, ImGuiWindowFlags flags)
 
 void GLUI::MatWidget::Update(cv::Mat mat, int code)
 {
-	mtx.lock();
+	std::lock_guard<std::mutex> lock(mtx);
 	cv::cvtColor(mat, image, code);
-	mtx.unlock();
 }
 
 void GLUI::MatWidget::Render()
 {
 	/* update texture if image is changed */
-	mtx.lock();
-	if (image.empty() == false && IsDraw) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data);
-		if (image_width != image.cols || image_height != image.rows) {
-			image_width = image.cols;
-			image_height = image.rows;
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		if (image.empty() == false && IsDraw) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data);
+			if (image_width != image.cols || image_height != image.rows) {
+				image_width = image.cols;
+				image_height = image.rows;
+			}
 		}
 	}
-	mtx.unlock();
 
 	/* UI part with opengl texture */
 	if (widget_init == false) {

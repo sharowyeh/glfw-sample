@@ -15,6 +15,8 @@ static bool cap_loop = false;
 std::thread cap_thread;
 GLUI::MatWidget* raw_widget = NULL;
 
+namespace Camera {
+
 void retrieveFrameRun(void* arg) {
 
 	while (cap_loop) {
@@ -31,7 +33,7 @@ void retrieveFrameRun(void* arg) {
 	}
 }
 
-bool Camera::OpenCapture(int cap_index)
+bool OpenCapture(int cap_index)
 {
 	if (cap.isOpened())
 		return false;
@@ -44,7 +46,7 @@ bool Camera::OpenCapture(int cap_index)
 	return result;
 }
 
-void Camera::CloseCapture()
+void CloseCapture()
 {
 	cap_loop = false;
 	if (cap_thread.joinable())
@@ -52,6 +54,8 @@ void Camera::CloseCapture()
 	cap.release();
 }
 
-void Camera::SetRawWidget(GLUI::MatWidget* widget) {
+void SetRawWidget(GLUI::MatWidget* widget) {
 	raw_widget = widget;
+}
+
 }

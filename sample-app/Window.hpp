@@ -3,7 +3,9 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#ifdef _WIN32
 #include <GLFW/glfw3native.h>
+#endif
 
 /* require opengl dependencies from operation system */
 #pragma comment(lib, "opengl32.lib")

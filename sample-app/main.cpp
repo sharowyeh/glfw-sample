@@ -254,6 +254,7 @@ int main() {
 		glViewport(0, 0, display_w, display_h);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// TODO: mac error can't get backend data from opengl3
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
