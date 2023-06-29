@@ -1,0 +1,41 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: g++-13 build glfw",
+			"command": "/opt/homebrew/bin/g++-13",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-I/opt/homebrew/include",
+				"-I/opt/homebrew/include/opencv4", // latest v4.8.0 on my mac
+				"-I${fileDirname}/imgui",
+				"-L/opt/homebrew/lib",
+				"-lglfw",
+				"-lopencv_core",
+				"-lopencv_videoio",
+				"-lopencv_imgproc",
+				"-lopencv_highgui",
+				"-L/opt/homebrew/Cellar/glew/2.2.0_1/lib", // dont know why no symbolic
+				"-lGLEW",
+				"-framework",
+				"OpenGL",
+				"-g",
+				"${fileDirname}/*.cpp",
+				"${fileDirname}/imgui/*.cpp",
+				//"${fileDirname}/MatWidget.cpp",
+				//"${fileDirname}/Camera.cpp",
+				"-o",
+				"${fileDirname}/${fileBasenameNoExtension}.out"
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "compiler: /opt/homebrew/bin/g++-13"
+		}
+	]
+}
