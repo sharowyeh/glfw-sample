@@ -1,4 +1,7 @@
 #pragma once
+/*
+* designed mouse draggable GUI overlaying on caller widget
+*/
 
 #include <string>
 #include "imgui/imgui.h"
