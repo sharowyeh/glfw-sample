@@ -52,7 +52,7 @@ static void CtrlStatusHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandler* 
 
 /* ini handlers to save control status
 refer to ImGui::Initialize() or ImGui::TableSettingsAddSettingsHandler() */
-void ctrl_status_add_settings_handler() {
+void custom_settings_ini_handler() {
 	ImGuiSettingsHandler ini_handler;
 	ini_handler.TypeName = "ControlStatus";
 	ini_handler.TypeHash = ImHashStr("ControlStatus");
@@ -93,7 +93,7 @@ int main() {
 	/* remove window caption */
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 	/* topmost */
-	glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+	//glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
 
 	window = glfwCreateWindow(1280, 720, "GLFW", NULL, NULL);
 	if (!window) {
@@ -116,13 +116,17 @@ int main() {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	/* CreateContext -> Initialize -> default ini handlers */
+	// apply custom callbacks to settings handler
+	custom_settings_ini_handler();
+
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
+	// just like my vs2022
+	io.Fonts->AddFontFromFileTTF("CascadiaMono.ttf", 20.f);
+	io.FontDefault = io.Fonts->Fonts.back();
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
-
-	ctrl_status_add_settings_handler();
 
 
 	cap_widget = new GLUI::MatWidget("Capture", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
@@ -148,6 +152,8 @@ int main() {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.f); // must pair with PopStyleVar() restore style changes for rendering loop
+
 		if (cap_widget->IsShow) {
 			cap_widget->Render();
 		}
@@ -165,6 +171,8 @@ int main() {
 			glfwSetWindowShouldClose(window, GLFW_FALSE);
 		}
 		GLUI::exit_popup_Render();
+		
+		ImGui::PopStyleVar();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

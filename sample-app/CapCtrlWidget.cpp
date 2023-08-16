@@ -19,6 +19,7 @@ namespace GLUI {
 
 	/* cap ctrl draw */
 	void cap_ctrl_widget_Render() {
+		//ImGui::GetStyle().WindowRounding = 4.f; // change style to the next control
 		ImGui::Begin("Camera Control", NULL, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 
 		if (ImGui::Button(cap_open_text)) {
