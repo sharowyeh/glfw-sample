@@ -132,7 +132,7 @@ int main() {
 	cap_widget = new GLUI::MatWidget("Capture", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 	Camera::SetRawWidget(cap_widget);
 	// assign for capture controls UI
-	GLUI::cap_ctrl_widget_Init(cap_widget);
+	GLUI::cap_ctrl_widget_Init();
 	// assign for exiting behavior
 	GLUI::exit_popup_Init(window, (GLFWwindowclosefun)close_callback);
 
@@ -159,7 +159,7 @@ int main() {
 		}
 
 		ImGui::SetNextWindowPos(ImVec2(670, 0));
-		GLUI::cap_ctrl_widget_Render();
+		GLUI::cap_ctrl_widget_Render(cap_widget);
 
         //ImGui::ShowDemoWindow();
 		

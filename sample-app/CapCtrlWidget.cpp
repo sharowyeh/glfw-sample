@@ -1,5 +1,4 @@
 #include "CapCtrlWidget.h"
-#include "MatWidget.h"
 #include "ExitPopup.h"
 
 namespace GLUI {
@@ -13,12 +12,10 @@ namespace GLUI {
 	const char* cap_show_text = "Hide";
 	const char* cap_draw_text = "Undraw";
 
-	MatWidget *cap_widget;
-
-	void cap_ctrl_widget_Init(void* widget) { cap_widget = (MatWidget*)widget; }
+	void cap_ctrl_widget_Init() { /* so far nothing to do */ }
 
 	/* cap ctrl draw */
-	void cap_ctrl_widget_Render() {
+	void cap_ctrl_widget_Render(MatWidget* cap_widget) {
 		//ImGui::GetStyle().WindowRounding = 4.f; // change style to the next control
 		ImGui::Begin("Camera Control", NULL, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 
@@ -39,13 +36,23 @@ namespace GLUI {
 		}
 
 		if (ImGui::Button(cap_show_text)) {
-			cap_widget->IsShow = !cap_widget->IsShow;
-			cap_show_text = cap_widget->IsShow ? "Hide" : "Show";
+			if (!cap_widget) {
+				cap_show_text = "Unavailable";
+			}
+			else {
+				cap_widget->IsShow = !cap_widget->IsShow;
+				cap_show_text = cap_widget->IsShow ? "Hide" : "Show";
+			}
 		}
 		ImGui::SameLine();
 		if (ImGui::Button(cap_draw_text)) {
-			cap_widget->IsDraw = !cap_widget->IsDraw;
-			cap_draw_text = cap_widget->IsDraw ? "Undraw" : "Draw";
+			if (!cap_widget) {
+				cap_show_text = "Unavailable";
+			}
+			else {
+				cap_widget->IsDraw = !cap_widget->IsDraw;
+				cap_draw_text = cap_widget->IsDraw ? "Undraw" : "Draw";
+			}
 		}
 
 		// About main window controls - incase window settings changed
