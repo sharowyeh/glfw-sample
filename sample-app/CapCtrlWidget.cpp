@@ -12,6 +12,11 @@ namespace GLUI {
 	const char* cap_show_text = "Hide";
 	const char* cap_draw_text = "Undraw";
 
+	int main_x = 0;
+	int main_y = 0;
+	float mouse_dx = 0;
+	float mouse_dy = 0;
+
 	void cap_ctrl_widget_Init() { /* so far nothing to do */ }
 
 	/* cap ctrl draw */
@@ -61,6 +66,8 @@ namespace GLUI {
 		if (ImGui::Button("Close window")) {
 			exit_popup_Update(true);
 		}
+
+		ImGui::Text("Main x: %d, y: %d Mouse dx: %.2f, dy: %.2f", main_x, main_y, mouse_dx, mouse_dy);
 
 		// IO events from window
 
@@ -160,6 +167,13 @@ namespace GLUI {
 
 		ImGui::Text("average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 		ImGui::End();
+	}
+
+	void update_mainwindow_info(int x, int y, float dx, float dy) {
+		main_x = x;
+		main_y = y;
+		mouse_dx = dx;
+		mouse_dy = dy;
 	}
 
 } // namespace GLUI

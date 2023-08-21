@@ -10,4 +10,6 @@ namespace GLUI {
 	void cap_ctrl_widget_Init();
 	/* draw capture control widget */
 	void cap_ctrl_widget_Render(MatWidget* widget = nullptr);
+
+	void update_mainwindow_info(int x, int y, float dx, float dy);
 }

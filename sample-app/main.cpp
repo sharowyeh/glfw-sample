@@ -64,7 +64,10 @@ void custom_settings_ini_handler() {
 	ImGui::AddSettingsHandler(&ini_handler);
 }
 
-/* draggable main, TODO: still buggy, aware dpi scaling, mouse pos diff */
+/* draggable main,
+*  NOTE: use get mouse drag delta instead of mouse delta,
+*    prevent mouse pos be calculated by moved main window to the next rendering loop results opposite values of previous
+*/
 void main_draggable_loop(GLFWwindow *window) {
 	if (ImGui::IsAnyItemActive()) {
 		return;
@@ -73,9 +76,14 @@ void main_draggable_loop(GLFWwindow *window) {
 		return;
 	}
 	int x, y;
+	float dx, dy;
 	glfwGetWindowPos(window, &x, &y);
-	x += ImGui::GetIO().MouseDelta.x;
-	y += ImGui::GetIO().MouseDelta.y;
+	auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+	dx = delta.x;
+	dy = delta.y;
+	GLUI::update_mainwindow_info(x, y, dx, dy);
+	x += floor(dx);
+	y += floor(dy);
 	glfwSetWindowPos(window, x, y);
 }
 
@@ -163,6 +171,7 @@ int main() {
 
         //ImGui::ShowDemoWindow();
 		
+		/* enable draggable window from context */
 		main_draggable_loop(window);
 
 		if (glfwWindowShouldClose(window)) {
