@@ -56,12 +56,14 @@ void GLUI::MatWidget::Render()
 	ImGui::Begin(widget_name, &IsShow, widget_flags);
 	ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texture)), ImVec2(image_width, image_height));
 
+	BeginHandleLayer();
 	// drawing ROIs as draggable handle widgets
 	for (auto it = rois.begin(); it != rois.end(); it++) {
 		if (HandleWidget(it->x, it->y, it->width, it->height, it->id, false)) {
 
 		}
 	}
+	EndHandleLayer();
 
 	ImGui::End();
 }

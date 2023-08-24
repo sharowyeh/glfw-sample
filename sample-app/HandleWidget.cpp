@@ -1,27 +1,102 @@
 #include "HandleWidget.h"
+#include "imgui/imgui_internal.h"
+
+
+// ImVec2 add operator
+ImVec2 operator+ (ImVec2 base, const ImVec2& operand) noexcept
+{
+	return ImVec2(base.x + operand.x, base.y + operand.y);
+}
+// ImVec2 minus operator
+ImVec2 operator- (ImVec2 base, const ImVec2& operand) noexcept
+{
+	return ImVec2(base.x - operand.x, base.y - operand.y);
+}
+// ImVec2 add-equal operator
+ImVec2& operator+= (ImVec2& base, const ImVec2& operand) noexcept
+{
+	base.x += operand.x;
+	base.y += operand.y;
+	return base;
+}
+// ImVec2 minus-equal operator
+ImVec2& operator-= (ImVec2& base, const ImVec2& operand) noexcept
+{
+	base.x -= operand.x;
+	base.y -= operand.y;
+	return base;
+}
+// ImRect add x,y shifted value of ImVec2 to both Min and Max (works as moving the rectangle to bottom-right corner)
+ImRect operator+ (ImRect base, const ImVec2& movement) noexcept
+{
+	// wont change anything to base or let ImRect& base?
+	return ImRect(
+		base.Min.x + movement.x,
+		base.Min.y + movement.y,
+		base.Max.x + movement.x,
+		base.Max.y + movement.y);
+}
+// ImRect minux x,y shifted value of ImVec2 to both Min and Max (works as moving the rectangle to top-left corner)
+ImRect operator- (ImRect base, const ImVec2& movement) noexcept
+{
+	// wont change anything to base or let ImRect& base?
+	return ImRect(
+		base.Min.x - movement.x,
+		base.Min.y - movement.y,
+		base.Max.x - movement.x,
+		base.Max.y - movement.y);
+}
+// ImRect equal-add x,y shifted value of ImVec2 to both Min and Max (works as moving the rectangle to bottom-right corner)
+ImRect& operator+= (ImRect& base, const ImVec2& movement) noexcept
+{
+	base.Min += movement;
+	base.Max += movement;
+	return base;
+}
+// ImRect equal-minux x,y shifted value of ImVec2 to both Min and Max (works as moving the rectangle to top-left corner)
+ImRect& operator-= (ImRect& base, const ImVec2& movement) noexcept
+{
+	base.Min -= movement;
+	base.Max -= movement;
+	return base;
+}
+
+/* should aways be parent pos + content region min */
+ImVec2 overlay_offset = ImVec2(0, 0);
+/* should aways be parent content region max - min */
+ImVec2 overlay_size = ImVec2(0, 0);
 
 void GLUI::BeginHandleLayer()
 {
 	auto ctx = GImGui;
 	auto flags =
-		ImGuiWindowFlags_NoBringToFrontOnFocus |
-		ImGuiWindowFlags_NoTitleBar |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
+		//ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoDecoration |
 		ImGuiWindowFlags_NoSavedSettings;
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	if (ctx != NULL)
-		ImGui::SetNextWindowSize(ctx->IO.DisplaySize);
+	// always refer to parent window
+	auto root = ImGui::GetCurrentWindow();
+	auto pos = ImGui::GetWindowPos();
+	auto topleft = ImGui::GetWindowContentRegionMin();
+	auto bottomright = ImGui::GetWindowContentRegionMax();
+	overlay_offset = pos + topleft;
+	overlay_size = bottomright - topleft;
+	if (root) {
+		ImGui::SetNextWindowPos(overlay_offset);
+		ImGui::SetNextWindowSize(overlay_size);
+	}
 	else
-		printf("[WARN] ctx is empty! should assign size manually\n");
+		printf("[WARN] handle overlay should be child of a parent window\n");
 	//TODO: make public variable?
 	bool open = true;
-	ImGui::Begin("##HandleLayer", &open, flags);
+	//ImGui::Begin("##HandleLayer", &open, flags);
+	ImGui::BeginChild("##HandleLayer", overlay_size, false, flags);
 }
 
 void GLUI::EndHandleLayer()
 {
-	ImGui::End();
+	//ImGui::End();
+	ImGui::EndChild();
 }
 
 bool GLUI::HandleWidget(float& x, float& y, float& width, float& height, std::string name, bool centered)
@@ -42,6 +117,7 @@ bool GLUI::HandleWidget(float& x, float& y, float& width, float& height, std::st
 	else {
 		rect = ImRect(x, y, x + width, y + height);
 	}
+	rect = rect + overlay_offset;
 
 	auto ctx = GImGui;
 	if (ctx != NULL) {

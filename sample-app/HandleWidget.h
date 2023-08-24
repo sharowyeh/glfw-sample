@@ -5,7 +5,6 @@
 
 #include <string>
 #include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
 
 // from https://github.com/ocornut/imgui/issues/553
 // for simple overlay drag and drop objects
