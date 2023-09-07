@@ -1,3 +1,5 @@
+/* NOTE: the original Windows class source code was duplicated from Iolive project */
+
 #include "Window.hpp"
 #include <stdexcept>
 #include <thread>
@@ -31,13 +33,20 @@ namespace GLUI {
 		// create window context first
 		glfwMakeContextCurrent(m_GlfwWindow);
 
-		// then initialize glew
+		// then initialize glew for further support texture 2d features
 		if (glewInit() != GLEW_OK)
 			throw std::runtime_error("Can't initialize opengl loader");
 
 		/*
-		* Window callback
+		* Set OpenGL window callback to our delegate callback function
 		*/
+		glfwSetWindowCloseCallback(m_GlfwWindow, [](GLFWwindow* window) {
+			Window* thisWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			if (!(thisWindow->OnWindowClosing)) return;
+
+			thisWindow->OnWindowClosing(thisWindow);
+			});
+
 		glfwSetFramebufferSizeCallback(m_GlfwWindow, [](GLFWwindow* window, int width, int height) {
 			Window* thisWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			if (!(thisWindow->OnFrameResizedCallback)) return;
@@ -62,6 +71,12 @@ namespace GLUI {
 			else if (LMouseButtonState == GLFW_RELEASE)
 				thisWindow->OnCursorPosCallback(false, xpos, ypos); // pressed: false
 			});
+
+		/* Window initialized event to caller, TODO: i've no sense run callback in singleton class ctor */
+		if (this->OnWindowInitialized) {
+			auto thisWindow = static_cast<Window*>(glfwGetWindowUserPointer(m_GlfwWindow));
+			this->OnWindowInitialized(this);
+		}
 	}
 
 	void Window::Destroy()

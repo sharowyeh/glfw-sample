@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-//#include "Window.hpp"
+#include "Window.hpp"
 #include "MatWidget.h"
 #include "Camera.h"
 #include "CapCtrlWidget.h"

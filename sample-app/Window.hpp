@@ -1,6 +1,8 @@
 #pragma once
+/* NOTE: the original Windows class source code was duplicated from Iolive project */
 
 #define GLFW_EXPOSE_NATIVE_WIN32
+/* for 2D texture */
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #ifdef _WIN32
@@ -9,8 +11,9 @@
 
 /* require opengl dependencies from operation system */
 #pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "glu32.lib")
+//#pragma comment(lib, "glu32.lib") // from old school style, the glew is enough for 2d texture
 
+// libglew32 lib was from Iolive project, probably built its own by cmake, offical lib is glew32(s).lib
 /* require GLEW_STATIC */
 #ifdef _DEBUG
 #pragma comment(lib, "./Debug/libglew32d.lib")
@@ -22,7 +25,7 @@
 #pragma comment(lib, "glfw3dll.lib")
 #pragma comment(lib, "glfw3.lib")
 #else
-#pragma comment(lib, "glew32.lib")
+//#pragma comment(lib, "glew32.lib") // offical GLEW lib, has been used by libglew32.lib
 #pragma comment(lib, "glfw3_mt.lib")
 #endif
 
@@ -45,6 +48,9 @@ namespace GLUI {
 		* \return bool isWindowShouldClose?
 		*/
 		bool PollEvents();
+		/*
+		* update frame to window rendering
+		*/
 		void SwapWindow();
 
 		void SetWindowOpacity(float value);
@@ -57,7 +63,14 @@ namespace GLUI {
 		Window(const char* title, int width, int height);
 
 	public:
-		// callback without GLFWwindow
+		/*
+		* callback for Window basic operation (partial by setting GLFWwindow callbacks)
+		*/
+		/* GLFW window been initialized, maybe for further ImGui initialization? */
+		void(*OnWindowInitialized)(Window* window) = nullptr;
+		/* when user raise close window event, mainly from caption top-right close button */
+		void(*OnWindowClosing)(Window* window) = nullptr;
+		/* minor callbacks for playground */
 		void(*OnFrameResizedCallback)(int width, int height) = nullptr;
 		void(*OnScrollCallback)(double xoffset, double yoffset) = nullptr;
 		void(*OnCursorPosCallback)(bool pressed, double xpos, double ypos) = nullptr;
