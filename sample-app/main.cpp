@@ -4,7 +4,7 @@
 #include "MatWidget.h"
 #include "Camera.h"
 #include "CapCtrlWidget.h"
-#include "ExitPopup.h"
+#include "TimeoutPopup.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -27,7 +27,7 @@
 #endif
 
 GLUI::MatWidget *cap_widget;
-
+GLUI::TimeoutPopup* leave_popup;
 
 static void CtrlStatusHandler_ClearAll(ImGuiContext* ctx, ImGuiSettingsHandler*) {
 	printf("ctrl status: clear all\n");
@@ -141,8 +141,11 @@ int main() {
 	Camera::SetRawWidget(cap_widget);
 	// assign for capture controls UI
 	GLUI::cap_ctrl_widget_Init();
-	// assign for exiting behavior
-	GLUI::exit_popup_Init(window, (GLFWwindowclosefun)close_callback);
+
+	// assign close window behavior
+	leave_popup = new GLUI::TimeoutPopup(window);
+	leave_popup->OnTimeoutElasped = close_callback;
+	cap_ctrl_set_close_popup(leave_popup);
 
 	/* loop until user close window */
 	while (glfwWindowShouldClose(window) == 0) {
@@ -175,11 +178,12 @@ int main() {
 		main_draggable_loop(window);
 
 		if (glfwWindowShouldClose(window)) {
-			GLUI::exit_popup_Update(true);
+			// raise timeout popup displaying time remaining
+			leave_popup->Show(true, 3.f);
 			// reset main window close flag, let main window close popup decide
 			glfwSetWindowShouldClose(window, GLFW_FALSE);
 		}
-		GLUI::exit_popup_Render();
+		leave_popup->Render();
 		
 		ImGui::PopStyleVar();
 

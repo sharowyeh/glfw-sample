@@ -147,7 +147,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CapCtrlWidget.cpp" />
-    <ClCompile Include="ExitPopup.cpp" />
+    <ClCompile Include="TimeoutPopup.cpp" />
     <ClCompile Include="HandleWidget.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
@@ -163,7 +163,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CapCtrlWidget.h" />
-    <ClInclude Include="ExitPopup.h" />
+    <ClInclude Include="TimeoutPopup.h" />
     <ClInclude Include="HandleWidget.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />

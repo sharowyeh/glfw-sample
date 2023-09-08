@@ -57,7 +57,7 @@
     <ClCompile Include="CapCtrlWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ExitPopup.cpp">
+    <ClCompile Include="TimeoutPopup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -104,7 +104,7 @@
     <ClInclude Include="CapCtrlWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExitPopup.h">
+    <ClInclude Include="TimeoutPopup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

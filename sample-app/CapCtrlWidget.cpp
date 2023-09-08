@@ -1,5 +1,4 @@
 #include "CapCtrlWidget.h"
-#include "ExitPopup.h"
 
 namespace GLUI {
 //TODO: make class?
@@ -17,7 +16,12 @@ namespace GLUI {
 	float mouse_dx = 0;
 	float mouse_dy = 0;
 
+	// for close window button
+	TimeoutPopup* leave = nullptr;
+
 	void cap_ctrl_widget_Init() { /* so far nothing to do */ }
+
+	void cap_ctrl_set_close_popup(TimeoutPopup* popup) { leave = popup; }
 
 	/* cap ctrl draw */
 	void cap_ctrl_widget_Render(MatWidget* cap_widget) {
@@ -64,7 +68,12 @@ namespace GLUI {
 
 		// alter close button if main window caption is hidden
 		if (ImGui::Button("Close window")) {
-			exit_popup_Update(true);
+			if (leave) {
+				leave->Show(true, 3.f);
+			}
+			else {
+				printf("need to assign timeout popup to display\n");
+			}
 		}
 
 		ImGui::Text("Main x: %d, y: %d Mouse dx: %.2f, dy: %.2f", main_x, main_y, mouse_dx, mouse_dy);
