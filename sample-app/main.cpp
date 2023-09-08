@@ -26,6 +26,7 @@
 #pragma comment(lib, "opencv_world455.lib")
 #endif
 
+GLUI::Window* window;
 GLUI::MatWidget *cap_widget;
 GLUI::TimeoutPopup* leave_popup;
 
@@ -88,54 +89,25 @@ void main_draggable_loop(GLFWwindow *window) {
 }
 
 int main() {
-	GLFWwindow* window;
 
-	glfwSetErrorCallback([](int code, const char* msg) {
-		printf("error:%d msg:%s\n", code, msg);
-	});
-
-	/* init framework */
-	if (!glfwInit())
-		return -1;
-
-	/* remove window caption */
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-	/* topmost */
-	//glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-
-	window = glfwCreateWindow(1280, 720, "GLFW", NULL, NULL);
-	if (!window) {
-		glfwTerminate();
-		return -1;
-	}
-
-	glfwSetWindowOpacity(window, 0.8f);
-	auto close_callback = [](GLFWwindow* wnd) {
+	window = GLUI::Window::Create("GLFW", 1280, 720);
+	window->SetWindowOpacity(0.8f);
+	window->OnWindowClosing = [](GLUI::Window* wnd) {
 		// this callback not design for rendering loops, all things can do is releasing resources before window closing
 		printf("on windoe close callback\n");
+		if (leave_popup) {
+			// prevent main window closing from default behavior, hand over to popup callback -> timeout slapsed
+			glfwSetWindowShouldClose(window->GetGlfwWindow(), GLFW_FALSE);
+			// raise timeout popup displaying time remaining
+			leave_popup->Show(true, 3.f);
+		}
 	};
-	glfwSetWindowCloseCallback(window, close_callback);
-
-	/* make context current */
-	glfwMakeContextCurrent(window);
-	/* for vsync */
-	glfwSwapInterval(1);
+	window->OnRenderFrame = [](GLUI::Window* wnd) {
+		// is the same afterward the window->PrepareFrame()
+	};
 	
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	/* CreateContext -> Initialize -> default ini handlers */
 	// apply custom callbacks to settings handler
 	custom_settings_ini_handler();
-
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigWindowsMoveFromTitleBarOnly = true;
-	// just like my vs2022
-	io.Fonts->AddFontFromFileTTF("CascadiaMono.ttf", 20.f);
-	io.FontDefault = io.Fonts->Fonts.back();
-
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");
-
 
 	cap_widget = new GLUI::MatWidget("Capture", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 	Camera::SetRawWidget(cap_widget);
@@ -143,25 +115,16 @@ int main() {
 	GLUI::cap_ctrl_widget_Init();
 
 	// assign close window behavior
-	leave_popup = new GLUI::TimeoutPopup(window);
-	leave_popup->OnTimeoutElasped = close_callback;
+	leave_popup = new GLUI::TimeoutPopup(window->GetGlfwWindow());
+	leave_popup->OnTimeoutElapsed = [](GLFWwindow* glWnd) {
+		printf("on timeout elapsed\n");
+		// exit message loop to close main window
+		glfwSetWindowShouldClose(window->GetGlfwWindow(), GLFW_TRUE);
+	};
 	cap_ctrl_set_close_popup(leave_popup);
 
 	/* loop until user close window */
-	while (glfwWindowShouldClose(window) == 0) {
-
-		/* poll for and process event */
-		glfwPollEvents();
-		/* render after clear */
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// TODO: mac error can't get backend data from opengl3
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+	while (window->PrepareFrame() == 0) {
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.f); // must pair with PopStyleVar() restore style changes for rendering loop
 
@@ -175,32 +138,18 @@ int main() {
         //ImGui::ShowDemoWindow();
 		
 		/* enable draggable window from context */
-		main_draggable_loop(window);
+		main_draggable_loop(window->GetGlfwWindow());
 
-		if (glfwWindowShouldClose(window)) {
-			// raise timeout popup displaying time remaining
-			leave_popup->Show(true, 3.f);
-			// reset main window close flag, let main window close popup decide
-			glfwSetWindowShouldClose(window, GLFW_FALSE);
-		}
 		leave_popup->Render();
 		
 		ImGui::PopStyleVar();
 
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		/* swap buffer */
-		glfwSwapBuffers(window);
+		window->SwapWindow();
 	}
 
 	Camera::CloseCapture();
 
-	ImGui_ImplGlfw_Shutdown();
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui::DestroyContext();
-
-	glfwTerminate();
+	window->Destroy();
 
 	return 0;
 }

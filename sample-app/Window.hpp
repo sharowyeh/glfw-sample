@@ -44,12 +44,12 @@ namespace GLUI {
 		static Window* Get();
 
 		/*
-		* poll window events
+		* poll window events and prepare frame context
 		* \return bool isWindowShouldClose?
 		*/
-		bool PollEvents();
+		bool PrepareFrame();
 		/*
-		* update frame to window rendering
+		* update frame to graphic output
 		*/
 		void SwapWindow();
 
@@ -66,14 +66,15 @@ namespace GLUI {
 		/*
 		* callback for Window basic operation (partial by setting GLFWwindow callbacks)
 		*/
-		/* GLFW window been initialized, maybe for further ImGui initialization? */
-		void(*OnWindowInitialized)(Window* window) = nullptr;
+
 		/* when user raise close window event, mainly from caption top-right close button */
 		void(*OnWindowClosing)(Window* window) = nullptr;
 		/* minor callbacks for playground */
 		void(*OnFrameResizedCallback)(int width, int height) = nullptr;
 		void(*OnScrollCallback)(double xoffset, double yoffset) = nullptr;
 		void(*OnCursorPosCallback)(bool pressed, double xpos, double ypos) = nullptr;
+
+		void(*OnRenderFrame)(Window* window) = nullptr;
 
 		float MaxFPS = 60.0f;
 

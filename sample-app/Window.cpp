@@ -6,6 +6,13 @@
 #include <chrono>
 #include <iostream>
 
+// for ImGui initialization
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+//#include "imgui/implot.h"
+//#include "imgui/implot_internal.h"
+
 namespace GLUI {
 	Window* Window::Create(const char* title, int width, int height)
 	{
@@ -24,6 +31,11 @@ namespace GLUI {
 	Window::Window(const char* title, int width, int height)
 	{
 		if (!glfwInit()) throw std::runtime_error("Can't initialize GLFW!");
+		
+		/* remove window caption */
+		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+		/* topmost */
+		//glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
 
 		m_GlfwWindow = glfwCreateWindow(width, height, title, NULL, NULL);
 		if (!m_GlfwWindow) throw std::runtime_error("Can't create window!");
@@ -32,6 +44,9 @@ namespace GLUI {
 
 		// create window context first
 		glfwMakeContextCurrent(m_GlfwWindow);
+
+		/* for vsync, fixed maximum 60 FPS in windowed mode */
+		//glfwSwapInterval(1);
 
 		// then initialize glew for further support texture 2d features
 		if (glewInit() != GLEW_OK)
@@ -72,27 +87,59 @@ namespace GLUI {
 				thisWindow->OnCursorPosCallback(false, xpos, ypos); // pressed: false
 			});
 
-		/* Window initialized event to caller, TODO: i've no sense run callback in singleton class ctor */
-		if (this->OnWindowInitialized) {
-			auto thisWindow = static_cast<Window*>(glfwGetWindowUserPointer(m_GlfwWindow));
-			this->OnWindowInitialized(this);
-		}
+		/* ImGui initialization */
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		//ImPlot::CreateContext();
+
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigWindowsMoveFromTitleBarOnly = true;
+		// just like my vs2022
+		io.Fonts->AddFontFromFileTTF("CascadiaMono.ttf", 20.f);
+		io.FontDefault = io.Fonts->Fonts.back();
+
+		ImGui_ImplGlfw_InitForOpenGL(m_GlfwWindow, true);
+		ImGui_ImplOpenGL3_Init("#version 330");
 	}
 
 	void Window::Destroy()
 	{
+		ImGui_ImplGlfw_Shutdown();
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui::DestroyContext();
+
 		glfwDestroyWindow(m_GlfwWindow);
 		glfwTerminate();
 	}
 
-	bool Window::PollEvents()
+	bool Window::PrepareFrame()
 	{
 		glfwPollEvents();
+		
+		/* clear previous frame data, because other project manipulate the 2d texture resources */
+		int display_w, display_h;
+		glfwGetFramebufferSize(m_GlfwWindow, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		// TODO: mac error can't get backend data from opengl3
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		
+		if (OnRenderFrame) {
+			OnRenderFrame(this);
+		}
+
 		return glfwWindowShouldClose(m_GlfwWindow);
 	}
 
 	void Window::SwapWindow()
 	{
+		// output to renderer
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		// update delta time
 		m_CurrentFrame = glfwGetTime();
 		m_DeltaTime = m_CurrentFrame - m_LastFrame;
