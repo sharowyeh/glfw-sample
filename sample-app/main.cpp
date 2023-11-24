@@ -134,8 +134,11 @@ int main() {
 	io.FontDefault = io.Fonts->Fonts.back();
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
+#ifdef _WIN32
 	ImGui_ImplOpenGL3_Init("#version 330");
-
+#elif defined(__APPLE__)
+	ImGui_ImplOpenGL3_Init("#version 210");
+#endif
 
 	cap_widget = new GLUI::MatWidget("Capture", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 	Camera::SetRawWidget(cap_widget);
