@@ -4,7 +4,9 @@ vscode root directory involved opengl framework dependencies, mainly using for m
 
 for windows env, go to sample-app use .sln or .vcxproj instead
 
-- TODO:
+- issue(solved):
+  updated: get imgui offical demo source code, found that mac env need further glfwWindowHint before init, to ensure opengl works properly
+
   sample-app not good in mac, null backend data exception occurred when calls opengl3 new frame, shows not done opengl3 init but did
   - getting GL3WglProc from libGL.dylib`glXXX is successful, but get gl versions via glGetIntegerv all return 0
   - init will not create backend renderer user data if check version failed during init

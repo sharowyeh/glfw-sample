@@ -98,6 +98,18 @@ int main() {
 	if (!glfwInit())
 		return -1;
 
+#ifdef _WIN32
+	/* in my windows dev env default */
+    const char* glsl_version = "#version 330";
+#elif defined(__APPLE__)
+    // GL 3.2 + GLSL 150
+    const char* glsl_version = "#version 150";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+#endif
+
 	/* remove window caption */
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 	/* topmost */
@@ -134,11 +146,7 @@ int main() {
 	io.FontDefault = io.Fonts->Fonts.back();
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-#ifdef _WIN32
-	ImGui_ImplOpenGL3_Init("#version 330");
-#elif defined(__APPLE__)
-	ImGui_ImplOpenGL3_Init("#version 210");
-#endif
+	ImGui_ImplOpenGL3_Init(glsl_version);
 
 	cap_widget = new GLUI::MatWidget("Capture", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 	Camera::SetRawWidget(cap_widget);
