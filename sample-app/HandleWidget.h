@@ -1,8 +1,10 @@
 #pragma once
+/*
+* designed mouse draggable GUI overlaying on caller widget
+*/
 
 #include <string>
 #include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
 
 // from https://github.com/ocornut/imgui/issues/553
 // for simple overlay drag and drop objects
