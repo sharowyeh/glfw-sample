@@ -21,10 +21,10 @@
 				"-framework",
 				"OpenGL",
 				"-g",
-				"${fileDirname}/*.cpp",
+				"${fileDirname}/*.cpp", // cannot just assign *.cpp
 				"${fileDirname}/imgui/*.cpp",
-				//"${fileDirname}/MatWidget.cpp",
-				//"${fileDirname}/Camera.cpp",
+				"${fileDirname}/MatWidget.cpp",
+				"${fileDirname}/Camera.cpp",
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}.out"
 			],
